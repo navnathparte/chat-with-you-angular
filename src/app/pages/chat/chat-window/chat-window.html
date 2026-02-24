@@ -1,0 +1,144 @@
+<div class="flex flex-col bg-[#0B141A]" style="height: 100%; max-height: 100vh; overflow: hidden">
+  <!-- ── Chat Header ────────────────────────────────────────────────── -->
+  <div class="bg-[#202C33] px-4 py-3 flex items-center gap-3 flex-shrink-0 shadow-md">
+    <!-- Back button (mobile) -->
+    <button (click)="backClicked.emit()" class="md:hidden p-1 text-[#8696A0] hover:text-white">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+
+    <!-- Avatar -->
+    @if (otherUser()?.avatar) {
+      <img
+        [src]="otherUser()!.avatar!"
+        [alt]="otherUser()!.username"
+        class="w-10 h-10 rounded-full object-cover cursor-pointer"
+      />
+    } @else {
+      <div
+        class="w-10 h-10 rounded-full bg-[#00A884] flex items-center justify-center text-white font-semibold flex-shrink-0"
+      >
+        {{ getInitials(otherUser()?.username || '?') }}
+      </div>
+    }
+
+    <!-- Name & Status -->
+    <div class="flex-1 min-w-0">
+      <h3 class="text-white font-medium text-sm truncate">{{ otherUser()?.username }}</h3>
+      <p
+        class="text-xs truncate"
+        [class.text-[#00A884]]="otherUser()?.isOnline"
+        [class.text-[#8696A0]]="!otherUser()?.isOnline"
+      >
+        @if (isTyping()) {
+          <span class="text-[#00A884]">typing...</span>
+        } @else {
+          {{ getLastSeenText() }}
+        }
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Messages Area ───────────────────────────────────────────────── -->
+  <div class="flex-1 overflow-y-auto px-4 py-4 min-h-0">
+    @for (msg of messages; track msg._id; let i = $index) {
+      <!-- Date separator -->
+      @if (shouldShowDateSeparator(messages, i)) {
+        <div class="flex justify-center my-4">
+          <span class="bg-[#182229] text-[#8696A0] text-xs px-3 py-1 rounded-full">
+            {{ formatDate(msg.createdAt) }}
+          </span>
+        </div>
+      }
+
+      <!-- Message bubble -->
+      <div class="flex mb-1" [class.justify-end]="isMine(msg)" [class.justify-start]="!isMine(msg)">
+        <div
+          class="max-w-[75%] rounded-lg px-3 py-2 shadow-sm"
+          [class.bg-[#005C4B]]="isMine(msg)"
+          [class.rounded-tr-none]="isMine(msg)"
+          [class.bg-[#202C33]]="!isMine(msg)"
+          [class.rounded-tl-none]="!isMine(msg)"
+        >
+          <p class="text-white text-sm break-words whitespace-pre-wrap">{{ msg.content }}</p>
+
+          <!-- Time + Read receipts -->
+          <div class="flex items-center justify-end gap-1 mt-1">
+            <span class="text-[10px] text-[#8696A0]">{{ getTime(msg) }}</span>
+
+            @if (isMine(msg)) {
+              @if (msg.status === 'read') {
+                <svg class="w-4 h-4 text-[#53BDEB]" viewBox="0 0 16 11" fill="currentColor">
+                  <path
+                    d="M11.071.653a.56.56 0 0 0-.812 0L4.13 7.582l-2.39-2.39a.56.56 0 0 0-.811.771l2.795 2.795a.56.56 0 0 0 .81 0l6.537-6.534a.56.56 0 0 0 0-.571zm2.588 0a.56.56 0 0 0-.812 0L6.718 7.582l-.647-.647a.56.56 0 0 0-.812.771l1.053 1.053a.56.56 0 0 0 .81 0l6.537-6.535a.56.56 0 0 0 0-.571z"
+                  />
+                </svg>
+              } @else if (msg.status === 'delivered') {
+                <svg class="w-4 h-4 text-[#8696A0]" viewBox="0 0 16 11" fill="currentColor">
+                  <path
+                    d="M11.071.653a.56.56 0 0 0-.812 0L4.13 7.582l-2.39-2.39a.56.56 0 0 0-.811.771l2.795 2.795a.56.56 0 0 0 .81 0l6.537-6.534a.56.56 0 0 0 0-.571zm2.588 0a.56.56 0 0 0-.812 0L6.718 7.582l-.647-.647a.56.56 0 0 0-.812.771l1.053 1.053a.56.56 0 0 0 .81 0l6.537-6.535a.56.56 0 0 0 0-.571z"
+                  />
+                </svg>
+              } @else {
+                <svg class="w-4 h-4 text-[#8696A0]" viewBox="0 0 12 11" fill="currentColor">
+                  <path
+                    d="M11.071.653a.56.56 0 0 0-.812 0L4.13 7.582l-2.39-2.39a.56.56 0 0 0-.811.771l2.795 2.795a.56.56 0 0 0 .81 0l6.537-6.534a.56.56 0 0 0 0-.571z"
+                  />
+                </svg>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Typing indicator -->
+    @if (isTyping()) {
+      <div class="flex justify-start mb-2">
+        <div class="bg-[#202C33] rounded-lg rounded-tl-none px-4 py-3 flex items-center gap-1">
+          <span
+            class="w-2 h-2 bg-[#8696A0] rounded-full animate-bounce"
+            style="animation-delay: 0ms"
+          ></span>
+          <span
+            class="w-2 h-2 bg-[#8696A0] rounded-full animate-bounce"
+            style="animation-delay: 150ms"
+          ></span>
+          <span
+            class="w-2 h-2 bg-[#8696A0] rounded-full animate-bounce"
+            style="animation-delay: 300ms"
+          ></span>
+        </div>
+      </div>
+    }
+
+    <!-- Scroll anchor -->
+    <div #messagesEnd></div>
+  </div>
+
+  <!-- ── Message Input ───────────────────────────────────────────────── -->
+  <div class="bg-[#202C33] px-4 py-3 flex items-end gap-3 flex-shrink-0">
+    <div class="flex-1 bg-[#2A3942] rounded-2xl px-4 py-2 min-h-[44px] flex items-center">
+      <textarea
+        #messageInput
+        [(ngModel)]="messageText"
+        (keydown)="onKeydown($event)"
+        (input)="onInput()"
+        placeholder="Type a message"
+        rows="1"
+        class="w-full bg-transparent text-white placeholder-[#8696A0] text-sm outline-none resize-none leading-6 max-h-32 overflow-y-auto"
+      ></textarea>
+    </div>
+
+    <button
+      (click)="send()"
+      [disabled]="!messageText.trim()"
+      class="w-11 h-11 bg-[#00A884] hover:bg-[#00967A] disabled:opacity-40 disabled:cursor-not-allowed rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
+    >
+      <svg class="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+      </svg>
+    </button>
+  </div>
+</div>

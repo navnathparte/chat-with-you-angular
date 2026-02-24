@@ -1,0 +1,74 @@
+<div class="h-full flex flex-col bg-[#111B21]">
+  <div class="bg-[#202C33] px-4 py-4 flex items-center gap-4 flex-shrink-0">
+    <button (click)="backClicked.emit()" class="text-[#8696A0] hover:text-white">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+    <h2 class="text-white font-semibold">Friend Requests</h2>
+    @if (requests.length > 0) {
+      <span class="ml-auto bg-[#00A884] text-white text-xs font-bold px-2 py-0.5 rounded-full">
+        {{ requests.length }}
+      </span>
+    }
+  </div>
+
+  <div class="flex-1 overflow-y-auto p-4">
+    @if (requests.length === 0) {
+      <div class="text-center py-16 text-[#8696A0]">
+        <svg
+          class="w-16 h-16 mx-auto mb-4 opacity-30"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+        </svg>
+        <p class="text-sm">No pending friend requests</p>
+      </div>
+    }
+
+    @for (user of requests; track user._id) {
+      <div class="bg-[#202C33] rounded-xl p-4 flex items-center gap-3 mb-3">
+        @if (user.avatar) {
+          <img
+            [src]="user.avatar"
+            [alt]="user.username"
+            class="w-12 h-12 rounded-full object-cover flex-shrink-0"
+          />
+        } @else {
+          <div
+            class="w-12 h-12 rounded-full bg-[#00A884] flex items-center justify-center text-white font-semibold flex-shrink-0"
+          >
+            {{ getInitials(user.username) }}
+          </div>
+        }
+
+        <div class="flex-1 min-w-0">
+          <p class="text-white font-medium text-sm">{{ user.username }}</p>
+          <p class="text-[#8696A0] text-xs truncate">{{ user.email }}</p>
+        </div>
+
+        <div class="flex gap-2">
+          <button
+            (click)="accept(user)"
+            class="bg-[#00A884] hover:bg-[#00967A] text-white text-xs px-3 py-2 rounded-lg font-medium transition-colors"
+          >
+            Accept
+          </button>
+          <button
+            (click)="reject(user)"
+            class="bg-[#2A3942] hover:bg-[#3B4A54] text-[#8696A0] hover:text-white text-xs px-3 py-2 rounded-lg font-medium transition-colors"
+          >
+            Decline
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

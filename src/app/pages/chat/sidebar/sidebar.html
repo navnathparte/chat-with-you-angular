@@ -1,0 +1,256 @@
+<div class="h-full flex flex-col bg-[#111B21]">
+  <!-- ── Top Header ─────────────────────────────────────────────────── -->
+  <div class="bg-[#202C33] px-4 py-3 flex items-center justify-between flex-shrink-0">
+    <button (click)="panelChange.emit('profile')" class="flex-shrink-0">
+      @if (auth.currentUser()?.avatar) {
+        <img
+          [src]="auth.currentUser()!.avatar!"
+          class="w-10 h-10 rounded-full object-cover"
+          [alt]="auth.currentUser()!.username"
+        />
+      } @else {
+        <div
+          class="w-10 h-10 rounded-full bg-[#00A884] flex items-center justify-center text-white font-semibold text-sm"
+        >
+          {{ getInitials(auth.currentUser()?.username || 'U') }}
+        </div>
+      }
+    </button>
+
+    <div class="flex items-center gap-2">
+      <button
+        (click)="panelChange.emit('friend-requests')"
+        class="relative p-2 rounded-full hover:bg-[#2A3942] text-[#8696A0] hover:text-white transition-colors"
+        title="Friend requests"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+        </svg>
+        @if (friendRequestCount > 0) {
+          <span
+            class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#00A884] rounded-full text-white text-[10px] flex items-center justify-center font-bold"
+          >
+            {{ friendRequestCount > 9 ? '9+' : friendRequestCount }}
+          </span>
+        }
+      </button>
+
+      <button
+        (click)="panelChange.emit('add-friend')"
+        class="p-2 rounded-full hover:bg-[#2A3942] text-[#8696A0] hover:text-white transition-colors"
+        title="Add friend"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+          />
+        </svg>
+      </button>
+
+      <button
+        (click)="logout.emit()"
+        class="p-2 rounded-full hover:bg-[#2A3942] text-[#8696A0] hover:text-white transition-colors"
+        title="Logout"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Search ──────────────────────────────────────────────────────── -->
+  <div class="bg-[#111B21] px-3 py-2 flex-shrink-0">
+    <div class="relative">
+      <svg
+        class="w-4 h-4 text-[#8696A0] absolute left-3 top-1/2 -translate-y-1/2"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        />
+      </svg>
+      <input
+        [(ngModel)]="searchQuery"
+        type="text"
+        placeholder="Search"
+        class="w-full bg-[#202C33] text-white placeholder-[#8696A0] rounded-lg pl-9 pr-4 py-2 text-sm outline-none"
+      />
+    </div>
+  </div>
+
+  <!-- ── Tabs ────────────────────────────────────────────────────────── -->
+  <div class="flex border-b border-[#2A3942] flex-shrink-0">
+    <button
+      (click)="activeTab = 'chats'"
+      class="flex-1 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors"
+      [class.text-[#00A884]]="activeTab === 'chats'"
+      [class.border-b-2]="activeTab === 'chats'"
+      [class.border-[#00A884]]="activeTab === 'chats'"
+      [class.text-[#8696A0]]="activeTab !== 'chats'"
+    >
+      Chats ({{ chatService.chats().length }})
+    </button>
+    <button
+      (click)="activeTab = 'friends'"
+      class="flex-1 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors"
+      [class.text-[#00A884]]="activeTab === 'friends'"
+      [class.border-b-2]="activeTab === 'friends'"
+      [class.border-[#00A884]]="activeTab === 'friends'"
+      [class.text-[#8696A0]]="activeTab !== 'friends'"
+    >
+      Friends ({{ chatService.friends().length }})
+    </button>
+  </div>
+
+  <!-- ── List ────────────────────────────────────────────────────────── -->
+  <div class="flex-1 overflow-y-auto">
+    <!-- CHATS TAB -->
+    @if (activeTab === 'chats') {
+      @if (filteredChats.length === 0) {
+        <div class="text-center py-12 text-[#8696A0] text-sm px-4">
+          @if (chatService.chats().length === 0) {
+            <p>No chats yet.</p>
+            <p class="mt-2 text-xs">
+              Switch to <strong class="text-[#00A884]">Friends</strong> tab to start a conversation!
+            </p>
+          } @else {
+            <p>No results for "{{ searchQuery }}"</p>
+          }
+        </div>
+      }
+
+      @for (chat of filteredChats; track chat._id) {
+        @let other = getOtherUser(chat);
+        <button
+          (click)="selectChat(chat)"
+          class="w-full flex items-center gap-3 px-3 py-3 hover:bg-[#2A3942] transition-colors border-b border-[#2A3942]/50 text-left"
+          [class.bg-[#2A3942]]="isActive(chat)"
+        >
+          <div class="relative flex-shrink-0">
+            @if (other?.avatar) {
+              <img
+                [src]="other!.avatar!"
+                [alt]="other!.username"
+                class="w-12 h-12 rounded-full object-cover"
+              />
+            } @else {
+              <div
+                class="w-12 h-12 rounded-full bg-[#00A884] flex items-center justify-center text-white font-semibold"
+              >
+                {{ getInitials(other?.username || '?') }}
+              </div>
+            }
+            @if (other?.isOnline) {
+              <div
+                class="absolute bottom-0 right-0 w-3 h-3 bg-[#00A884] rounded-full border-2 border-[#111B21]"
+              ></div>
+            }
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="text-white font-medium text-sm truncate">{{ other?.username }}</span>
+              <span class="text-[#8696A0] text-xs flex-shrink-0 ml-2">{{ getTime(chat) }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <p class="text-[#8696A0] text-xs truncate">{{ getLastMessagePreview(chat) }}</p>
+              @if (chat.unreadCount && chat.unreadCount > 0) {
+                <span
+                  class="flex-shrink-0 ml-2 w-5 h-5 bg-[#00A884] rounded-full text-white text-[10px] flex items-center justify-center font-bold"
+                >
+                  {{ chat.unreadCount > 9 ? '9+' : chat.unreadCount }}
+                </span>
+              }
+            </div>
+          </div>
+        </button>
+      }
+    }
+
+    <!-- FRIENDS TAB -->
+    @if (activeTab === 'friends') {
+      @if (filteredFriends.length === 0) {
+        <div class="text-center py-12 text-[#8696A0] text-sm px-4">
+          @if (chatService.friends().length === 0) {
+            <p>No friends yet.</p>
+            <p class="mt-1">
+              Use the <strong class="text-[#00A884]">+ button</strong> to add friends.
+            </p>
+          } @else {
+            <p>No results for "{{ searchQuery }}"</p>
+          }
+        </div>
+      }
+
+      @for (friend of filteredFriends; track friend._id) {
+        <button
+          (click)="selectFriend(friend)"
+          class="w-full flex items-center gap-3 px-3 py-3 hover:bg-[#2A3942] transition-colors border-b border-[#2A3942]/50 text-left"
+        >
+          <div class="relative flex-shrink-0">
+            @if (friend.avatar) {
+              <img
+                [src]="friend.avatar"
+                [alt]="friend.username"
+                class="w-12 h-12 rounded-full object-cover"
+              />
+            } @else {
+              <div
+                class="w-12 h-12 rounded-full bg-[#00A884] flex items-center justify-center text-white font-semibold"
+              >
+                {{ getInitials(friend.username) }}
+              </div>
+            }
+            @if (friend.isOnline) {
+              <div
+                class="absolute bottom-0 right-0 w-3 h-3 bg-[#00A884] rounded-full border-2 border-[#111B21]"
+              ></div>
+            }
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-white font-medium text-sm truncate">{{ friend.username }}</p>
+            <p
+              class="text-xs mt-0.5"
+              [class.text-[#00A884]]="friend.isOnline"
+              [class.text-[#8696A0]]="!friend.isOnline"
+            >
+              {{ friend.isOnline ? 'Online' : 'Offline' }}
+            </p>
+          </div>
+          <!-- Start chat arrow -->
+          <svg
+            class="w-4 h-4 text-[#8696A0] flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
+          </svg>
+        </button>
+      }
+    }
+  </div>
+</div>

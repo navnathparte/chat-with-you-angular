@@ -1,0 +1,88 @@
+<div class="h-screen flex bg-gray-100">
+  <!-- LOGIN SCREEN -->
+  @if (!loggedIn) {
+    <div class="m-auto bg-white p-6 rounded-xl shadow-lg w-80">
+      <h2 class="text-xl font-bold mb-4 text-center">
+        {{ isRegisterMode ? 'Register' : 'Login' }}
+      </h2>
+
+      <input [(ngModel)]="username" placeholder="Username" class="border p-2 rounded w-full mb-3" />
+
+      <input
+        [(ngModel)]="password"
+        type="password"
+        placeholder="Password"
+        class="border p-2 rounded w-full mb-3"
+      />
+
+      @if (isRegisterMode) {
+        <button (click)="register()" class="bg-green-500 text-white p-2 rounded w-full">
+          Register
+        </button>
+      } @else {
+        <button (click)="login()" class="bg-blue-500 text-white p-2 rounded w-full">Login</button>
+      }
+
+      <div
+        class="text-center mt-3 text-sm cursor-pointer text-blue-500"
+        (click)="isRegisterMode = !isRegisterMode"
+      >
+        {{ isRegisterMode ? 'Already have account? Login' : 'Create account' }}
+      </div>
+    </div>
+  }
+
+  <!-- CHAT SCREEN -->
+  @if (loggedIn) {
+    <!-- Sidebar -->
+    <div class="w-1/4 bg-white border-r p-4">
+      <h3 class="font-bold mb-3">Online Users</h3>
+
+      @for (user of socket.onlineUsers(); track $index) {
+        <div class="p-2 bg-green-100 rounded mb-2 text-sm">
+          {{ user }}
+        </div>
+      }
+    </div>
+
+    <input
+      [(ngModel)]="targetUserId"
+      placeholder="Enter userId to chat"
+      class="border p-2 rounded mb-2"
+    />
+
+    <button (click)="openChat()" class="bg-blue-500 text-white p-2 rounded">Open Chat</button>
+
+    <!-- Chat Area -->
+    <div class="flex-1 flex flex-col">
+      <div class="flex-1 p-4 overflow-y-auto">
+        @for (msg of socket.messages(); track $index) {
+          <div
+            [ngClass]="{
+              'self-end bg-green-200': msg.sender._id === auth.getUserId(),
+              'self-start bg-gray-200': msg.sender._id !== auth.getUserId(),
+            }"
+            class="p-2 rounded-lg max-w-xs mb-2"
+          >
+            {{ msg.content }}
+          </div>
+        }
+
+        @if (socket.typingUser()) {
+          <div class="text-gray-400 text-sm">{{ socket.typingUser() }} typing...</div>
+        }
+      </div>
+
+      <div class="p-4 flex gap-2 border-t">
+        <input
+          [(ngModel)]="message"
+          (keyup)="typing()"
+          placeholder="Type message"
+          class="flex-1 border p-2 rounded"
+        />
+
+        <button (click)="send()" class="bg-green-500 text-white px-4 rounded">Send</button>
+      </div>
+    </div>
+  }
+</div>
