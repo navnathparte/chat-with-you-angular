@@ -5,7 +5,7 @@ import { Chat, Message, User } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
-  private readonly API = 'http://localhost:3000/api';
+  private readonly API = 'https://chat-with-you-node.onrender.com/api';
   private http = inject(HttpClient);
 
   // ── Signals ──────────────────────────────────────────────────────────────

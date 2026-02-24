@@ -21,7 +21,7 @@ export class SocketService {
     const token = this.auth.getToken();
     if (!token || this.socket?.connected) return;
 
-    this.socket = io('http://localhost:3000', {
+    this.socket = io('https://chat-with-you-node.onrender.com', {
       auth: { token },
       transports: ['websocket'],
       reconnection: true,

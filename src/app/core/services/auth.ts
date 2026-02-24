@@ -14,7 +14,7 @@ interface JwtPayload {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly API = 'http://localhost:3000/api/auth';
+  private readonly API = 'https://chat-with-you-node.onrender.com/api/auth';
   private http = inject(HttpClient);
   private router = inject(Router);
 
